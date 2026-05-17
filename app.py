@@ -1,8 +1,9 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash
-from datetime import datetime
+from datetime import datetime, date
 from models import db, FinancialRecord
 from sqlalchemy import func
+import calendar
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key'
@@ -190,11 +191,43 @@ def delete_record(record_id):
 def breakdown(category):
     if category not in ['Asset', 'Liability']:
         return redirect(url_for('dashboard'))
+        
+    quarter_param = request.args.get('quarter')
+    
+    # 1. Determine all available quarters
+    all_dates = db.session.query(FinancialRecord.entry_date).all()
+    quarters = set()
+    for (d,) in all_dates:
+        q_str = f"Q{(d.month - 1) // 3 + 1} {d.year}"
+        quarters.add(q_str)
+    
+    sorted_quarters = sorted(list(quarters), key=lambda x: (int(x.split()[1]), x.split()[0]), reverse=True)
+    
+    if not quarter_param or quarter_param not in sorted_quarters:
+        selected_quarter = sorted_quarters[0] if sorted_quarters else None
+    else:
+        selected_quarter = quarter_param
+        
+    if selected_quarter:
+        q_num = int(selected_quarter[1])
+        year = int(selected_quarter.split()[1])
+        start_month = (q_num - 1) * 3 + 1
+        end_month = q_num * 3
+        last_day = calendar.monthrange(year, end_month)[1]
+        
+        start_date = date(year, start_month, 1)
+        end_date = date(year, end_month, last_day)
+    else:
+        start_date = date.min
+        end_date = date.max
     
     subquery = db.session.query(
         FinancialRecord.account_name,
         func.max(FinancialRecord.entry_date).label('max_date')
-    ).filter(FinancialRecord.category == category).group_by(FinancialRecord.account_name).subquery()
+    ).filter(
+        FinancialRecord.category == category,
+        FinancialRecord.entry_date <= end_date
+    ).group_by(FinancialRecord.account_name).subquery()
 
     latest_records = db.session.query(FinancialRecord).join(
         subquery,
@@ -206,7 +239,42 @@ def breakdown(category):
     
     total = sum(r.balance for r in latest_records)
 
-    return render_template('breakdown.html', category=category, records=latest_records, total=total)
+    # Completeness logic
+    all_category_accounts = db.session.query(FinancialRecord.account_name).filter(FinancialRecord.category == category).distinct().all()
+    expected_account_names = {r[0] for r in all_category_accounts}
+    
+    updated_this_quarter = db.session.query(FinancialRecord.account_name).filter(
+        FinancialRecord.category == category,
+        FinancialRecord.entry_date >= start_date,
+        FinancialRecord.entry_date <= end_date
+    ).distinct().all()
+    updated_account_names = {r[0] for r in updated_this_quarter}
+    
+    expected_count = len(expected_account_names)
+    updated_count = len(updated_account_names)
+    
+    percentage = updated_count / expected_count if expected_count else 0
+    if percentage >= 0.875: quartile = 100
+    elif percentage >= 0.625: quartile = 75
+    elif percentage >= 0.375: quartile = 50
+    elif percentage >= 0.125: quartile = 25
+    else: quartile = 0
+    
+    completeness = {
+        'percentage': int(percentage * 100),
+        'quartile': quartile,
+        'count': updated_count,
+        'total': expected_count
+    }
+
+    return render_template('breakdown.html', 
+                           category=category, 
+                           records=latest_records, 
+                           total=total,
+                           quarters=sorted_quarters,
+                           selected_quarter=selected_quarter,
+                           completeness=completeness,
+                           updated_account_names=list(updated_account_names))
 
 @app.route('/completeness/<quarter>')
 def completeness_detail(quarter):
