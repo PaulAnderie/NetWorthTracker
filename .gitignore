@@ -5,3 +5,6 @@ instance/
 *.db
 .env
 .DS_Store
+.pytest_cache/
+.coverage
+htmlcov/

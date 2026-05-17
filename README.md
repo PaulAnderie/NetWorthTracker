@@ -57,6 +57,15 @@ A sleek, responsive, mobile-first web application designed to track and visualiz
 6. **Access the App:**
    Open your browser and navigate to `http://127.0.0.1:5000/`. For the best experience, open your browser's developer tools and switch to a mobile device view.
 
+## Running Tests
+
+Install the dev dependencies and run pytest from the repo root:
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
 ## Project Structure
 
 ```text
