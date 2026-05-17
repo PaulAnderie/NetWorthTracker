@@ -94,6 +94,25 @@
             const today = new Date().toISOString().split('T')[0];
             dateInput.value = today;
         }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const accountParam = urlParams.get('account');
+        const categoryParam = urlParams.get('category');
+
+        if (accountParam) {
+            const accountSelect = document.getElementById('account_name');
+            for (let i = 0; i < accountSelect.options.length; i++) {
+                if (accountSelect.options[i].value === accountParam) {
+                    accountSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        
+        if (categoryParam) {
+            const categorySelect = document.getElementById('category');
+            categorySelect.value = categoryParam;
+        }
     });
 </script>
 {% endblock %}

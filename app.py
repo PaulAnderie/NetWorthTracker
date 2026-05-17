@@ -208,6 +208,36 @@ def breakdown(category):
 
     return render_template('breakdown.html', category=category, records=latest_records, total=total)
 
+@app.route('/completeness/<quarter>')
+def completeness_detail(quarter):
+    all_records = db.session.query(FinancialRecord.entry_date, FinancialRecord.account_name, FinancialRecord.category).all()
+    
+    account_category_map = {}
+    total_accounts = set()
+    quarter_accounts = set()
+    
+    for r in all_records:
+        account_category_map[r.account_name] = r.category
+        total_accounts.add(r.account_name)
+        q_str = f"Q{(r.entry_date.month - 1) // 3 + 1} {r.entry_date.year}"
+        if q_str == quarter:
+            quarter_accounts.add(r.account_name)
+            
+    missing_accounts = total_accounts - quarter_accounts
+    
+    missing_assets = [acc for acc in missing_accounts if account_category_map.get(acc) == 'Asset']
+    missing_liabilities = [acc for acc in missing_accounts if account_category_map.get(acc) == 'Liability']
+    
+    updated_assets = [acc for acc in quarter_accounts if account_category_map.get(acc) == 'Asset']
+    updated_liabilities = [acc for acc in quarter_accounts if account_category_map.get(acc) == 'Liability']
+    
+    return render_template('completeness.html', 
+                           quarter=quarter,
+                           missing_assets=sorted(missing_assets),
+                           missing_liabilities=sorted(missing_liabilities),
+                           updated_assets=sorted(updated_assets),
+                           updated_liabilities=sorted(updated_liabilities))
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

@@ -52,7 +52,7 @@
     <h3 class="text-sm font-semibold text-gray-200 mb-4">Data Completeness</h3>
     <div class="flex flex-col gap-3">
         {% for stat in completeness_stats %}
-        <div class="flex items-center justify-between">
+        <a href="{{ url_for('completeness_detail', quarter=stat.quarter) }}" class="flex items-center justify-between hover:bg-gray-800 p-2 -mx-2 rounded-lg transition-colors active:scale-95">
             <div class="flex items-center gap-3">
                 <div class="w-6 h-6 rounded-full border border-gray-600 bg-darkbg overflow-hidden relative flex-shrink-0">
                     <svg viewBox="0 0 100 100" class="w-full h-full text-accent">
@@ -69,8 +69,11 @@
                 </div>
                 <span class="text-white font-medium text-sm">{{ stat.quarter }}</span>
             </div>
-            <span class="text-xs text-gray-400 font-semibold">{{ stat.count }} / {{ stat.total }} Accounts</span>
-        </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-400 font-semibold">{{ stat.count }} / {{ stat.total }} Accounts</span>
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </div>
+        </a>
         {% endfor %}
     </div>
 </div>
