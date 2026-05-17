@@ -3,7 +3,12 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from datetime import datetime, date
 from models import db, FinancialRecord
 from sqlalchemy import func
-import calendar
+from helpers import (
+    format_quarter,
+    quarter_sort_key,
+    quarter_date_range,
+    completeness_quartile,
+)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key'
@@ -95,29 +100,17 @@ def dashboard():
     total_accounts = set(r.account_name for r in all_records)
     quarter_data = defaultdict(set)
     for r in all_records:
-        quarter = f"Q{(r.entry_date.month - 1) // 3 + 1} {r.entry_date.year}"
-        quarter_data[quarter].add(r.account_name)
-    
+        quarter_data[format_quarter(r.entry_date)].add(r.account_name)
+
     completeness_stats = []
-    sorted_quarters = sorted(quarter_data.items(), key=lambda x: (int(x[0].split()[1]), x[0].split()[0]), reverse=True)
-    
+    sorted_quarters = sorted(quarter_data.items(), key=lambda x: quarter_sort_key(x[0]), reverse=True)
+
     for q, accounts in sorted_quarters[:4]:
         percentage = len(accounts) / len(total_accounts) if total_accounts else 0
-        if percentage >= 0.875:
-            quartile = 100
-        elif percentage >= 0.625:
-            quartile = 75
-        elif percentage >= 0.375:
-            quartile = 50
-        elif percentage >= 0.125:
-            quartile = 25
-        else:
-            quartile = 0
-            
         completeness_stats.append({
             'quarter': q,
             'percentage': int(percentage * 100),
-            'quartile': quartile,
+            'quartile': completeness_quartile(percentage),
             'count': len(accounts),
             'total': len(total_accounts)
         })
@@ -196,27 +189,17 @@ def breakdown(category):
     
     # 1. Determine all available quarters
     all_dates = db.session.query(FinancialRecord.entry_date).all()
-    quarters = set()
-    for (d,) in all_dates:
-        q_str = f"Q{(d.month - 1) // 3 + 1} {d.year}"
-        quarters.add(q_str)
-    
-    sorted_quarters = sorted(list(quarters), key=lambda x: (int(x.split()[1]), x.split()[0]), reverse=True)
-    
+    quarters = {format_quarter(d) for (d,) in all_dates}
+
+    sorted_quarters = sorted(quarters, key=quarter_sort_key, reverse=True)
+
     if not quarter_param or quarter_param not in sorted_quarters:
         selected_quarter = sorted_quarters[0] if sorted_quarters else None
     else:
         selected_quarter = quarter_param
-        
+
     if selected_quarter:
-        q_num = int(selected_quarter[1])
-        year = int(selected_quarter.split()[1])
-        start_month = (q_num - 1) * 3 + 1
-        end_month = q_num * 3
-        last_day = calendar.monthrange(year, end_month)[1]
-        
-        start_date = date(year, start_month, 1)
-        end_date = date(year, end_month, last_day)
+        start_date, end_date = quarter_date_range(selected_quarter)
     else:
         start_date = date.min
         end_date = date.max
@@ -254,15 +237,9 @@ def breakdown(category):
     updated_count = len(updated_account_names)
     
     percentage = updated_count / expected_count if expected_count else 0
-    if percentage >= 0.875: quartile = 100
-    elif percentage >= 0.625: quartile = 75
-    elif percentage >= 0.375: quartile = 50
-    elif percentage >= 0.125: quartile = 25
-    else: quartile = 0
-    
     completeness = {
         'percentage': int(percentage * 100),
-        'quartile': quartile,
+        'quartile': completeness_quartile(percentage),
         'count': updated_count,
         'total': expected_count
     }
@@ -287,8 +264,7 @@ def completeness_detail(quarter):
     for r in all_records:
         account_category_map[r.account_name] = r.category
         total_accounts.add(r.account_name)
-        q_str = f"Q{(r.entry_date.month - 1) // 3 + 1} {r.entry_date.year}"
-        if q_str == quarter:
+        if format_quarter(r.entry_date) == quarter:
             quarter_accounts.add(r.account_name)
             
     missing_accounts = total_accounts - quarter_accounts
