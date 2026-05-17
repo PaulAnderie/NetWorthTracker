@@ -49,6 +49,11 @@
                     <optgroup label="Assets - Real Estate">
                         <option value="Kleve, Huiskampstr. 141" {% if record.account_name == 'Kleve, Huiskampstr. 141' %}selected{% endif %}>Kleve, Huiskampstr. 141</option>
                     </optgroup>
+                    <optgroup label="Assets - Objects of Value">
+                        <option value="Car" {% if record.account_name == 'Car' %}selected{% endif %}>Car</option>
+                        <option value="Jewelry & Watches" {% if record.account_name == 'Jewelry & Watches' %}selected{% endif %}>Jewelry & Watches</option>
+                        <option value="Art & Collectibles" {% if record.account_name == 'Art & Collectibles' %}selected{% endif %}>Art & Collectibles</option>
+                    </optgroup>
                     <optgroup label="Liabilities">
                         <option value="Mortgage" {% if record.account_name == 'Mortgage' %}selected{% endif %}>Mortgage</option>
                         <option value="Personal Loan" {% if record.account_name == 'Personal Loan' %}selected{% endif %}>Personal Loan</option>
