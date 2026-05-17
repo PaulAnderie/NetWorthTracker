@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Net Worth Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#121212',
+                        cardbg: '#1E1E1E',
+                        accent: '#4ade80', // Tailwind green-400
+                        danger: '#f87171' // Tailwind red-400
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #f3f4f6;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col no-scrollbar">
+    
+    <!-- Top Nav -->
+    <header class="bg-cardbg border-b border-gray-800 sticky top-0 z-50">
+        <div class="px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-tight text-white">Net Worth Tracker</h1>
+            <a href="{{ url_for('add_record') }}" class="bg-accent text-darkbg rounded-full w-8 h-8 flex items-center justify-center font-bold text-xl shadow-lg transition-transform active:scale-95">
+                +
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 w-full max-w-md mx-auto p-4 flex flex-col gap-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bottom Nav / Footer (Optional for mobile feel) -->
+    <footer class="bg-cardbg border-t border-gray-800 pb-safe mt-auto">
+        <div class="flex justify-around py-3">
+            <a href="{{ url_for('dashboard') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span class="text-xs">Dashboard</span>
+            </a>
+            <a href="{{ url_for('history') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-xs">History</span>
+            </a>
+            <a href="{{ url_for('add_record') }}" class="flex flex-col items-center text-gray-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                <span class="text-xs">Add</span>
+            </a>
+        </div>
+    </footer>
+
+</body>
+</html>

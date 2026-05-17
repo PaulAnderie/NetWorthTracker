@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Net Worth Summary Card -->
+<div class="bg-cardbg rounded-2xl p-6 shadow-lg border border-gray-800 flex flex-col items-center relative overflow-hidden">
+    <!-- Decorative gradient blob -->
+    <div class="absolute -top-10 -right-10 w-32 h-32 bg-accent opacity-10 rounded-full blur-2xl"></div>
+    
+    <p class="text-sm text-gray-400 font-medium uppercase tracking-wider mb-1">Total Net Worth</p>
+    <h2 class="text-4xl font-extrabold text-white mb-2">€{{ "{:,.2f}".format(current_net_worth) }}</h2>
+    
+    <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-opacity-20 {% if qoq_growth >= 0 %}bg-accent text-accent{% else %}bg-danger text-danger{% endif %} text-sm font-semibold mt-2">
+        {% if qoq_growth >= 0 %}
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+        {% else %}
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg>
+        {% endif %}
+        <span>{{ "%.2f"|format(qoq_growth|abs) }}% QoQ</span>
+    </div>
+</div>
+
+<!-- Assets & Liabilities Split -->
+<div class="grid grid-cols-2 gap-4">
+    <a href="{{ url_for('breakdown', category='Asset') }}" class="bg-cardbg rounded-2xl p-5 shadow-lg border border-gray-800 flex flex-col items-start transition-transform active:scale-95 hover:bg-gray-800">
+        <p class="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Total Assets</p>
+        <p class="text-xl font-bold text-white">€{{ "{:,.0f}".format(total_assets) }}</p>
+        <div class="w-full h-1 bg-gray-800 rounded-full mt-3 overflow-hidden">
+            <div class="h-full bg-accent rounded-full w-full"></div>
+        </div>
+    </a>
+    
+    <a href="{{ url_for('breakdown', category='Liability') }}" class="bg-cardbg rounded-2xl p-5 shadow-lg border border-gray-800 flex flex-col items-start transition-transform active:scale-95 hover:bg-gray-800">
+        <p class="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Total Liabilities</p>
+        <p class="text-xl font-bold text-white">€{{ "{:,.0f}".format(total_liabilities) }}</p>
+        <div class="w-full h-1 bg-gray-800 rounded-full mt-3 overflow-hidden">
+            <div class="h-full bg-danger rounded-full w-full"></div>
+        </div>
+    </a>
+</div>
+
+<!-- Trend Chart -->
+<div class="bg-cardbg rounded-2xl p-5 shadow-lg border border-gray-800 flex flex-col mb-4">
+    <h3 class="text-sm font-semibold text-gray-200 mb-4">Net Worth Trend</h3>
+    <div class="relative w-full h-48">
+        <canvas id="trendChart"></canvas>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    
+    // Create gradient
+    let gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, 'rgba(74, 222, 128, 0.5)'); // accent color with opacity
+    gradient.addColorStop(1, 'rgba(74, 222, 128, 0.0)');
+
+    const chartData = {
+        labels: {{ chart_labels | tojson }},
+        datasets: [{
+            label: 'Net Worth',
+            data: {{ chart_data | tojson }},
+            borderColor: '#4ade80', // accent color
+            backgroundColor: gradient,
+            borderWidth: 3,
+            pointBackgroundColor: '#121212',
+            pointBorderColor: '#4ade80',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.4
+        }]
+    };
+
+    const config = {
+        type: 'line',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(30,30,30,0.9)',
+                    titleColor: '#fff',
+                    bodyColor: '#4ade80',
+                    borderColor: '#333',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) { label += ': '; }
+                            if (context.parsed.y !== null) {
+                                label += new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' }).format(context.parsed.y);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false, drawBorder: false },
+                    ticks: { color: '#9ca3af', font: { size: 10 }, maxTicksLimit: 5 }
+                },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                    ticks: {
+                        color: '#9ca3af',
+                        font: { size: 10 },
+                        callback: function(value, index, values) {
+                            if (value >= 1000000) return '€' + (value / 1000000).toFixed(1) + 'm';
+                            if (value >= 1000) return '€' + (value / 1000).toFixed(0) + 'k';
+                            return '€' + value;
+                        }
+                    }
+                }
+            },
+            interaction: { mode: 'nearest', axis: 'x', intersect: false }
+        }
+    };
+
+    new Chart(ctx, config);
+</script>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-4">
+    <h2 class="text-2xl font-bold text-white">
+        {% if account_filter %}
+        History for <span class="text-accent">{{ account_filter }}</span>
+        {% else %}
+        History
+        {% endif %}
+    </h2>
+    {% if account_filter %}
+    <a href="{{ url_for('history') }}" class="text-sm font-semibold text-gray-400 hover:text-white px-3 py-1 rounded-full border border-gray-700 bg-cardbg">Clear</a>
+    {% endif %}
+</div>
+
+<div class="flex flex-col gap-3 pb-8">
+    {% for record in records %}
+    <a href="{{ url_for('edit_record', record_id=record.id) }}" class="bg-cardbg rounded-xl p-4 shadow-sm border border-gray-800 flex justify-between items-center transition-transform active:scale-95 active:bg-gray-800">
+        <div class="flex flex-col">
+            <span class="text-white font-semibold text-base">{{ record.account_name }}</span>
+            <span class="text-gray-400 text-xs">{{ record.entry_date.strftime('%b %d, %Y') }} • {{ record.category }}</span>
+        </div>
+        <div class="flex flex-col items-end">
+            <span class="font-bold text-base {% if record.category == 'Liability' %}text-danger{% elif record.category == 'Asset' %}text-accent{% else %}text-white{% endif %}">
+                €{{ "{:,.2f}".format(record.balance) }}
+            </span>
+            <svg class="w-4 h-4 text-gray-500 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </div>
+    </a>
+    {% else %}
+    <div class="text-center py-10 text-gray-500">
+        <p>No records found.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

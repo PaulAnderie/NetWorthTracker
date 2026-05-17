@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="bg-cardbg rounded-2xl p-6 shadow-lg border border-gray-800 mb-4">
+    <h2 class="text-2xl font-bold text-white mb-6">Add Record</h2>
+    
+    <form action="{{ url_for('add_record') }}" method="POST" class="flex flex-col gap-5">
+        
+        <!-- Date -->
+        <div class="flex flex-col gap-2">
+            <label for="entry_date" class="text-sm font-medium text-gray-400">Date</label>
+            <input type="date" id="entry_date" name="entry_date" required 
+                   class="bg-darkbg border border-gray-700 text-white text-base rounded-xl p-3 focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all appearance-none"
+                   value="{{ request.args.get('date', '') }}">
+        </div>
+        
+        <!-- Category -->
+        <div class="flex flex-col gap-2">
+            <label for="category" class="text-sm font-medium text-gray-400">Category</label>
+            <div class="relative">
+                <select id="category" name="category" required
+                        class="w-full bg-darkbg border border-gray-700 text-white text-base rounded-xl p-3 appearance-none focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all">
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="Asset">Asset</option>
+                    <option value="Liability">Liability</option>
+                    <option value="Cashflow">Cashflow</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Name -->
+        <div class="flex flex-col gap-2">
+            <label for="account_name" class="text-sm font-medium text-gray-400">Account Name</label>
+            <div class="relative">
+                <select id="account_name" name="account_name" required
+                        class="w-full bg-darkbg border border-gray-700 text-white text-base rounded-xl p-3 appearance-none focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all">
+                    <option value="" disabled selected>Select Account</option>
+                    <optgroup label="Assets - Banking & Brokerage">
+                        <option value="Konto Comdirect">Konto Comdirect</option>
+                        <option value="N26">N26</option>
+                        <option value="TradeRep">TradeRep</option>
+                    </optgroup>
+                    <optgroup label="Assets - Real Estate">
+                        <option value="Kleve, Huiskampstr. 141">Kleve, Huiskampstr. 141</option>
+                    </optgroup>
+                    <optgroup label="Liabilities">
+                        <option value="Mortgage">Mortgage</option>
+                        <option value="Personal Loan">Personal Loan</option>
+                    </optgroup>
+                    <optgroup label="Other">
+                        <option value="Other">Other (Custom)</option>
+                    </optgroup>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance -->
+        <div class="flex flex-col gap-2">
+            <label for="balance" class="text-sm font-medium text-gray-400">Balance (€)</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                    <span class="text-gray-500 font-medium">€</span>
+                </div>
+                <input type="number" id="balance" name="balance" step="0.01" required placeholder="0.00"
+                       class="w-full bg-darkbg border border-gray-700 text-white text-base rounded-xl p-3 pl-8 focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all">
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" 
+                class="mt-4 w-full bg-accent hover:bg-green-500 text-darkbg font-bold text-lg rounded-xl py-4 shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            Save Record
+        </button>
+    </form>
+</div>
+
+<!-- Auto-fill today's date script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('entry_date');
+        if (!dateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+        }
+    });
+</script>
+{% endblock %}

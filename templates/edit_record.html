@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="bg-cardbg rounded-2xl p-6 shadow-lg border border-gray-800 mb-4">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-white">Edit Record</h2>
+        <a href="{{ url_for('history') }}" class="text-gray-400 hover:text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </a>
+    </div>
+    
+    <form action="{{ url_for('edit_record', record_id=record.id) }}" method="POST" class="flex flex-col gap-5">
+        
+        <!-- Date -->
+        <div class="flex flex-col gap-2">
+            <label for="entry_date" class="text-sm font-medium text-gray-400">Date</label>
+            <input type="date" id="entry_date" name="entry_date" required 
+                   class="bg-darkbg border border-gray-700 text-white text-base rounded-xl p-3 focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all appearance-none"
+                   value="{{ record.entry_date.strftime('%Y-%m-%d') }}">
+        </div>
+        
+        <!-- Category -->
+        <div class="flex flex-col gap-2">
+            <label for="category" class="text-sm font-medium text-gray-400">Category</label>
+            <div class="relative">
+                <select id="category" name="category" required
+                        class="w-full bg-darkbg border border-gray-700 text-white text-base rounded-xl p-3 appearance-none focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all">
+                    <option value="Asset" {% if record.category == 'Asset' %}selected{% endif %}>Asset</option>
+                    <option value="Liability" {% if record.category == 'Liability' %}selected{% endif %}>Liability</option>
+                    <option value="Cashflow" {% if record.category == 'Cashflow' %}selected{% endif %}>Cashflow</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Name -->
+        <div class="flex flex-col gap-2">
+            <label for="account_name" class="text-sm font-medium text-gray-400">Account Name</label>
+            <div class="relative">
+                <select id="account_name" name="account_name" required
+                        class="w-full bg-darkbg border border-gray-700 text-white text-base rounded-xl p-3 appearance-none focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all">
+                    <optgroup label="Assets - Banking & Brokerage">
+                        <option value="Konto Comdirect" {% if record.account_name == 'Konto Comdirect' %}selected{% endif %}>Konto Comdirect</option>
+                        <option value="N26" {% if record.account_name == 'N26' %}selected{% endif %}>N26</option>
+                        <option value="TradeRep" {% if record.account_name == 'TradeRep' %}selected{% endif %}>TradeRep</option>
+                    </optgroup>
+                    <optgroup label="Assets - Real Estate">
+                        <option value="Kleve, Huiskampstr. 141" {% if record.account_name == 'Kleve, Huiskampstr. 141' %}selected{% endif %}>Kleve, Huiskampstr. 141</option>
+                    </optgroup>
+                    <optgroup label="Liabilities">
+                        <option value="Mortgage" {% if record.account_name == 'Mortgage' %}selected{% endif %}>Mortgage</option>
+                        <option value="Personal Loan" {% if record.account_name == 'Personal Loan' %}selected{% endif %}>Personal Loan</option>
+                    </optgroup>
+                    <optgroup label="Other">
+                        <option value="Other" {% if record.account_name == 'Other' %}selected{% endif %}>Other (Custom)</option>
+                    </optgroup>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance -->
+        <div class="flex flex-col gap-2">
+            <label for="balance" class="text-sm font-medium text-gray-400">Balance (€)</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                    <span class="text-gray-500 font-medium">€</span>
+                </div>
+                <input type="number" id="balance" name="balance" step="0.01" required 
+                       value="{{ record.balance }}"
+                       class="w-full bg-darkbg border border-gray-700 text-white text-base rounded-xl p-3 pl-8 focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all">
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" 
+                class="mt-4 w-full bg-accent hover:bg-green-500 text-darkbg font-bold text-lg rounded-xl py-4 shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            Save Changes
+        </button>
+    </form>
+    
+    <hr class="border-gray-800 my-6">
+    
+    <!-- Delete Button -->
+    <form action="{{ url_for('delete_record', record_id=record.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this record? This action cannot be undone.');">
+        <button type="submit" class="w-full bg-transparent border border-danger text-danger hover:bg-danger hover:text-white font-semibold text-base rounded-xl py-3 transition-colors flex justify-center items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            Delete Record
+        </button>
+    </form>
+</div>
+{% endblock %}
