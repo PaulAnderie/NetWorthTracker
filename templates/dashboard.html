@@ -46,6 +46,36 @@
     </div>
 </div>
 
+<!-- Data Completeness -->
+{% if completeness_stats %}
+<div class="bg-cardbg rounded-2xl p-5 shadow-lg border border-gray-800 flex flex-col mb-4">
+    <h3 class="text-sm font-semibold text-gray-200 mb-4">Data Completeness</h3>
+    <div class="flex flex-col gap-3">
+        {% for stat in completeness_stats %}
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full border border-gray-600 bg-darkbg overflow-hidden relative flex-shrink-0">
+                    <svg viewBox="0 0 100 100" class="w-full h-full text-accent">
+                        {% if stat.quartile == 100 %}
+                        <circle cx="50" cy="50" r="50" fill="currentColor"/>
+                        {% elif stat.quartile == 75 %}
+                        <path d="M50 50 L50 0 A50 50 0 1 1 0 50 Z" fill="currentColor"/>
+                        {% elif stat.quartile == 50 %}
+                        <path d="M50 50 L50 0 A50 50 0 0 1 50 100 Z" fill="currentColor"/>
+                        {% elif stat.quartile == 25 %}
+                        <path d="M50 50 L50 0 A50 50 0 0 1 100 50 Z" fill="currentColor"/>
+                        {% endif %}
+                    </svg>
+                </div>
+                <span class="text-white font-medium text-sm">{{ stat.quarter }}</span>
+            </div>
+            <span class="text-xs text-gray-400 font-semibold">{{ stat.count }} / {{ stat.total }} Accounts</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <script>
     const ctx = document.getElementById('trendChart').getContext('2d');
     

@@ -88,13 +88,47 @@ def dashboard():
         chart_labels.append(dt.strftime('%Y-%m-%d'))
         chart_data.append(dt_net_worth)
 
+    from collections import defaultdict
+    # Compute Data Completeness
+    all_records = db.session.query(FinancialRecord.entry_date, FinancialRecord.account_name).all()
+    total_accounts = set(r.account_name for r in all_records)
+    quarter_data = defaultdict(set)
+    for r in all_records:
+        quarter = f"Q{(r.entry_date.month - 1) // 3 + 1} {r.entry_date.year}"
+        quarter_data[quarter].add(r.account_name)
+    
+    completeness_stats = []
+    sorted_quarters = sorted(quarter_data.items(), key=lambda x: (int(x[0].split()[1]), x[0].split()[0]), reverse=True)
+    
+    for q, accounts in sorted_quarters[:4]:
+        percentage = len(accounts) / len(total_accounts) if total_accounts else 0
+        if percentage >= 0.875:
+            quartile = 100
+        elif percentage >= 0.625:
+            quartile = 75
+        elif percentage >= 0.375:
+            quartile = 50
+        elif percentage >= 0.125:
+            quartile = 25
+        else:
+            quartile = 0
+            
+        completeness_stats.append({
+            'quarter': q,
+            'percentage': int(percentage * 100),
+            'quartile': quartile,
+            'count': len(accounts),
+            'total': len(total_accounts)
+        })
+
     return render_template('dashboard.html', 
                            current_net_worth=current_net_worth,
                            total_assets=total_assets,
                            total_liabilities=total_liabilities,
                            qoq_growth=qoq_growth,
                            chart_labels=chart_labels,
-                           chart_data=chart_data)
+                           chart_data=chart_data,
+                           completeness_stats=completeness_stats)
 
 @app.route('/add', methods=['GET', 'POST'])
 def add_record():
